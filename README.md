@@ -20,9 +20,9 @@ For example, if an Azure NSG has a tag "Owner: Networking", the script will find
 1. Download the script to your FireMon server or a machine with access to your FireMon server:
 
 ```bash
-curl -o firemon_nsg_documentation.py https://example.com/scripts/firemon_nsg_documentation.py
+curl -o firemon_nsg_documentation.py https://raw.githubusercontent.com/adamgunderson/FireMon-NSG-Tag-Mapper/refs/heads/main/firemon_nsg_documentation.py
 # OR
-wget https://example.com/scripts/firemon_nsg_documentation.py
+wget https://raw.githubusercontent.com/adamgunderson/FireMon-NSG-Tag-Mapper/refs/heads/main/firemon_nsg_documentation.py
 ```
 
 2. Make the script executable:
