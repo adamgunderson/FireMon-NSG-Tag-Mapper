@@ -4,7 +4,7 @@ A Python utility script for mapping Azure Network Security Group (NSG) tags to F
 
 ## Overview
 
-This script automates the process of transferring Azure NSG tags to corresponding FireMon rule documentation fields. Instead of consolidating all tags into a single documentation field, the script maps each NSG tag to its corresponding FireMon documentation field by name, maintaining the direct relationship between tag names and field names.
+This script automates the process of transferring Azure NSG tags to corresponding FireMon rule documentation fields. The script maps each NSG tag to its corresponding FireMon documentation field by name, maintaining the direct relationship between tag names and field names.
 
 For example, if an Azure NSG has a tag "Owner: Networking", the script will find the FireMon "Owner" documentation field and set its value to "Networking".
 
