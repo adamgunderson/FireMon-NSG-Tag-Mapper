@@ -48,7 +48,7 @@ The script will prompt you for:
 For automation or scheduled tasks, you can provide all parameters via command line:
 
 ```bash
-./firemon_nsg_documentation.py --ip firemon.example.com --username admin --password mypassword --device 1372
+python3 firemon_nsg_documentation.py --ip firemon.example.com --username admin --password mypassword --device 1372
 ```
 
 ### Available Options
