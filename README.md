@@ -17,18 +17,12 @@ For example, if an Azure NSG has a tag "Owner: Networking", the script will find
 
 ## Installation
 
-1. Download the script to your FireMon server or a machine with access to your FireMon server:
+Download the script to your FireMon server or a machine with access to your FireMon server:
 
 ```bash
 curl -o firemon_nsg_documentation.py https://raw.githubusercontent.com/adamgunderson/FireMon-NSG-Tag-Mapper/refs/heads/main/firemon_nsg_documentation.py
 # OR
 wget https://raw.githubusercontent.com/adamgunderson/FireMon-NSG-Tag-Mapper/refs/heads/main/firemon_nsg_documentation.py
-```
-
-2. Make the script executable:
-
-```bash
-chmod +x firemon_nsg_documentation.py
 ```
 
 ## Usage
@@ -38,7 +32,7 @@ chmod +x firemon_nsg_documentation.py
 Run the script in interactive mode:
 
 ```bash
-./firemon_nsg_documentation.py
+python3 firemon_nsg_documentation.py
 ```
 
 The script will prompt you for:
@@ -97,7 +91,7 @@ If your NSG tag names don't match FireMon field names exactly, you can create a 
 Save this as a JSON file and provide the path with the `--tag-map` option:
 
 ```bash
-./firemon_nsg_documentation.py --ip firemon.example.com --username admin --password mypassword --device 1372 --tag-map my_mapping.json
+python3 firemon_nsg_documentation.py --ip firemon.example.com --username admin --password mypassword --device 1372 --tag-map my_mapping.json
 ```
 
 ## Examples
@@ -105,7 +99,7 @@ Save this as a JSON file and provide the path with the `--tag-map` option:
 ### Basic Tag Mapping
 
 ```bash
-./firemon_nsg_documentation.py --ip firemon.example.com --username admin --password mypassword
+python3 firemon_nsg_documentation.py --ip firemon.example.com --username admin --password mypassword
 ```
 
 ### Dry Run to Test Mapping
@@ -148,11 +142,3 @@ If running directly on a FireMon server, the script includes a module import mec
 ## License
 
 This script is provided "as is" without warranty of any kind, express or implied.
-
-## Author
-
-Adam Gunderson / Firemon LLC
-
----
-
-For additional questions or support, please contact your FireMon administrator or open an issue in the repository.
