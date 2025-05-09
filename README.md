@@ -21,7 +21,9 @@ Download the script to your FireMon server or a machine with access to your Fire
 
 ```bash
 curl -o firemon_nsg_documentation.py https://raw.githubusercontent.com/adamgunderson/FireMon-NSG-Tag-Mapper/refs/heads/main/firemon_nsg_documentation.py
+```
 # OR
+```bash
 wget https://raw.githubusercontent.com/adamgunderson/FireMon-NSG-Tag-Mapper/refs/heads/main/firemon_nsg_documentation.py
 ```
 
