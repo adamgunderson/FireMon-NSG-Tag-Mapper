@@ -77,7 +77,7 @@ python3 firemon_nsg_documentation.py --ip firemon.example.com --username admin -
 
 | Option | Description |
 |--------|-------------|
-| `--ip` | FireMon app server IP or FQDN |
+| `--ip` | FireMon app server IP or FQDN (default: localhost) |
 | `--domain` | Domain ID (default: 1) |
 | `--device` | Device ID |
 | `--username` | FireMon username |
