@@ -65,10 +65,28 @@ def parse_arguments():
     parser.add_argument('--show-all-devices', action='store_true', help='Show all devices including ones with 0 policies')
     parser.add_argument('--tag-map', help='Custom mapping of NSG tags to rule documentation fields (JSON file)')
     parser.add_argument('--ignore-case', action='store_true', help='Ignore case when matching tag names to documentation fields')
+    parser.add_argument('--non-interactive', action='store_true', help='Run without prompting for input (for cron jobs)')
 
     args = parser.parse_args()
 
-    # If args aren't provided, prompt for them
+    # Check if we're in non-interactive mode and validate required parameters
+    if args.non_interactive:
+        missing_params = []
+        if not args.ip:
+            missing_params.append('--ip')
+        if not args.username:
+            missing_params.append('--username')
+        if not args.password:
+            missing_params.append('--password')
+        if not args.device:
+            missing_params.append('--device')
+        
+        if missing_params:
+            print(f"Error: The following parameters are required in non-interactive mode: {', '.join(missing_params)}")
+            sys.exit(1)
+        return args
+
+    # If not in non-interactive mode and args aren't provided, prompt for them
     if not args.ip:
         args.ip = input("FireMon app server IP or FQDN (default: localhost): >> ") or "localhost"
     
@@ -226,7 +244,7 @@ def check_policy_count(ip, domain_id, device_id, session, logger):
         logger.error(f"Error checking policies: {str(e)}")
         return 0
 
-def select_device(ip, domain_id, session, logger, device_id=None, show_all=False):
+def select_device(ip, domain_id, session, logger, device_id=None, show_all=False, non_interactive=False):
     """Allow user to select a device or use provided device ID"""
     if device_id:
         # Verify the device exists and has policies
@@ -234,12 +252,17 @@ def select_device(ip, domain_id, session, logger, device_id=None, show_all=False
         if policy_count > 0:
             logger.info(f"Using provided device ID: {device_id} ({policy_count} policies)")
             return device_id
-        elif show_all:
+        elif show_all or non_interactive:
             logger.warning(f"Device ID {device_id} has no policies, but proceeding as requested.")
             return device_id
         else:
             logger.warning(f"Device ID {device_id} has no policies. Please select a different device.")
             device_id = None
+    
+    # In non-interactive mode, we can't proceed without a device
+    if non_interactive:
+        logger.error("No valid device ID provided in non-interactive mode")
+        sys.exit(1)
     
     # Pagination setup
     page_size = 20  # 20 devices per page
@@ -477,33 +500,38 @@ def main():
             logger.error("Failed to retrieve documentation fields. Exiting.")
             sys.exit(1)
         
-        # Display available fields
-        print("\nAvailable Documentation Fields for Mapping:")
-        print("ID    | Name                           | Type")
-        print("------|--------------------------------|--------")
-        
-        for field in doc_fields:
-            field_id = field.get('id', 'N/A')
-            name = field.get('name', 'Unknown')[:30]  # Truncate long names
-            field_type = field.get('type', 'Unknown')[:15]
+        # Display available fields and ask for confirmation only in interactive mode
+        if not args.non_interactive:
+            print("\nAvailable Documentation Fields for Mapping:")
+            print("ID    | Name                           | Type")
+            print("------|--------------------------------|--------")
             
-            print(f"{field_id:<6} | {name:<30} | {field_type}")
-        
-        # Allow user to confirm
-        if input("\nContinue with mapping NSG tags to these fields? (y/n): ").lower() != 'y':
-            logger.info("Operation cancelled by user.")
-            sys.exit(0)
+            for field in doc_fields:
+                field_id = field.get('id', 'N/A')
+                name = field.get('name', 'Unknown')[:30]  # Truncate long names
+                field_type = field.get('type', 'Unknown')[:15]
+                
+                print(f"{field_id:<6} | {name:<30} | {field_type}")
+            
+            # Allow user to confirm
+            if input("\nContinue with mapping NSG tags to these fields? (y/n): ").lower() != 'y':
+                logger.info("Operation cancelled by user.")
+                sys.exit(0)
         
         # Select device if not provided
         if not args.device:
-            args.device = select_device(args.ip, args.domain, session, logger, show_all=args.show_all_devices)
+            args.device = select_device(args.ip, args.domain, session, logger, 
+                                        show_all=args.show_all_devices,
+                                        non_interactive=args.non_interactive)
         else:
             # Verify device has policies
             policy_count = check_policy_count(args.ip, args.domain, args.device, session, logger)
-            if policy_count == 0 and not args.show_all_devices:
+            if policy_count == 0 and not args.show_all_devices and not args.non_interactive:
                 logger.warning(f"Device ID {args.device} has no policies.")
                 if input("Continue anyway? (y/n): ").lower() != 'y':
-                    args.device = select_device(args.ip, args.domain, session, logger, show_all=args.show_all_devices)
+                    args.device = select_device(args.ip, args.domain, session, logger, 
+                                               show_all=args.show_all_devices,
+                                               non_interactive=args.non_interactive)
         
         # Get all NSG policies
         logger.info(f"Retrieving NSG policies from device {args.device} in domain {args.domain}")
