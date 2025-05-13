@@ -51,6 +51,28 @@ For automation or scheduled tasks, you can provide all parameters via command li
 python3 firemon_nsg_documentation.py --ip firemon.example.com --username admin --password mypassword --device 1372
 ```
 
+### Non-Interactive Mode
+
+For scheduling with cron or running in automated environments, use the `--non-interactive` flag:
+
+```bash
+python3 firemon_nsg_documentation.py --ip firemon.example.com --username admin --password mypassword --device 1372 --non-interactive
+```
+
+This mode disables all prompts and confirmations, making it suitable for unattended operation.
+
+### Logging Configuration
+
+The script supports built-in logging with file rotation:
+
+```bash
+python3 firemon_nsg_documentation.py --ip firemon.example.com --username admin --password mypassword --device 1372 --non-interactive --log-file ~/firemon_logs/nsg_mapping.log --log-max-size 5 --log-backup-count 3
+```
+
+- Logs will be written to the specified file
+- Log files will rotate when they reach the maximum size (in MB)
+- A specified number of backup log files will be kept
+
 ### Available Options
 
 | Option | Description |
@@ -66,6 +88,19 @@ python3 firemon_nsg_documentation.py --ip firemon.example.com --username admin -
 | `--show-all-devices` | Show all devices including ones with 0 policies |
 | `--tag-map` | Path to custom mapping JSON file |
 | `--ignore-case` | Ignore case when matching tag names to documentation fields |
+| `--non-interactive` | Run without prompting for input (for cron jobs) |
+| `--log-file` | Path to log file (default: stdout only) |
+| `--log-max-size` | Maximum log file size in MB (default: 10) |
+| `--log-backup-count` | Number of log backup files to keep (default: 5) |
+
+## Scheduling with Cron
+
+To schedule regular execution using cron, create a crontab entry like this:
+
+```
+# Run daily at 2 AM
+0 2 * * * /usr/bin/python3 /path/to/firemon_nsg_documentation.py --ip firemon.example.com --username admin --password 'your_password' --device 1372 --non-interactive --log-file ~/firemon_logs/nsg_mapping.log
+```
 
 ## Tag Matching Logic
 
@@ -116,6 +151,12 @@ python3 firemon_nsg_documentation.py --ip firemon.example.com --username admin -
 ./firemon_nsg_documentation.py --ip firemon.example.com --username admin --password mypassword --tag-map mapping.json --ignore-case
 ```
 
+### Automated Execution with Logging
+
+```bash
+./firemon_nsg_documentation.py --ip firemon.example.com --username admin --password mypassword --device 1372 --non-interactive --log-file /var/tmp/firemon_nsg_sync.log
+```
+
 ## Troubleshooting
 
 ### Common Issues
@@ -136,6 +177,10 @@ python3 firemon_nsg_documentation.py --ip firemon.example.com --username admin -
    - Use `--verbose` to see detailed matching attempts
    - Check if field names match tag names or create a custom mapping
    - Ensure NSGs have tags in Azure and they're visible in FireMon
+
+5. **Log File Issues**
+   - Check that the script has write permissions to the log directory
+   - For home directory paths, ensure `~/` is used correctly
 
 ### Running Directly on FireMon Server
 
