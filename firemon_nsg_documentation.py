@@ -66,6 +66,11 @@ def parse_arguments():
     parser.add_argument('--tag-map', help='Custom mapping of NSG tags to rule documentation fields (JSON file)')
     parser.add_argument('--ignore-case', action='store_true', help='Ignore case when matching tag names to documentation fields')
     parser.add_argument('--non-interactive', action='store_true', help='Run without prompting for input (for cron jobs)')
+    
+    # Logging options
+    parser.add_argument('--log-file', help='Path to log file (default: stdout only)')
+    parser.add_argument('--log-max-size', type=int, default=10, help='Maximum log file size in MB (default: 10)')
+    parser.add_argument('--log-backup-count', type=int, default=5, help='Number of log backup files to keep (default: 5)')
 
     args = parser.parse_args()
 
@@ -98,18 +103,69 @@ def parse_arguments():
         
     return args
 
-def setup_logging(verbose=False):
-    """Set up logging configuration"""
+def setup_logging(verbose=False, log_file=None, log_max_size=10, log_backup_count=5):
+    """Set up logging configuration with rotation support
+    
+    Args:
+        verbose (bool): Whether to enable debug logging
+        log_file (str): Path to log file (None for stdout only)
+        log_max_size (int): Maximum log file size in MB
+        log_backup_count (int): Number of backup files to keep
+    """
     level = "DEBUG" if verbose else "INFO"
+    log_format = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
     
     try:
         import logging
-        logging.basicConfig(
-            level=level,
-            format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-            handlers=[logging.StreamHandler(sys.stdout)]
-        )
-        return logging.getLogger('firemon_nsg_documentation')
+        from logging.handlers import RotatingFileHandler
+        import os
+        
+        logger = logging.getLogger('firemon_nsg_documentation')
+        logger.setLevel(getattr(logging, level))
+        
+        # Clear any existing handlers
+        if logger.handlers:
+            logger.handlers = []
+        
+        # Create console handler
+        console_handler = logging.StreamHandler(sys.stdout)
+        console_handler.setFormatter(logging.Formatter(log_format))
+        logger.addHandler(console_handler)
+        
+        # Create file handler if log_file is specified
+        if log_file:
+            # Convert relative paths that start with ~/
+            if log_file.startswith('~/'):
+                log_file = os.path.expanduser(log_file)
+                
+            # Create directory if it doesn't exist
+            log_dir = os.path.dirname(log_file)
+            if log_dir and not os.path.exists(log_dir):
+                try:
+                    os.makedirs(log_dir)
+                except PermissionError:
+                    logger.warning(f"Cannot create log directory {log_dir}. Check permissions.")
+                except Exception as e:
+                    logger.warning(f"Error creating log directory {log_dir}: {str(e)}")
+            
+            try:
+                # Convert MB to bytes for maxBytes
+                max_bytes = log_max_size * 1024 * 1024
+                
+                file_handler = RotatingFileHandler(
+                    log_file,
+                    maxBytes=max_bytes,
+                    backupCount=log_backup_count
+                )
+                file_handler.setFormatter(logging.Formatter(log_format))
+                logger.addHandler(file_handler)
+                logger.info(f"Logging to file: {log_file} (max size: {log_max_size}MB, backups: {log_backup_count})")
+            except PermissionError:
+                logger.warning(f"Cannot write to log file {log_file}. Check permissions.")
+            except Exception as e:
+                logger.warning(f"Error setting up file logging: {str(e)}")
+        
+        return logger
     except ImportError:
         # Simple print-based logger if logging module is not available
         class SimpleLogger:
@@ -481,7 +537,12 @@ def main():
     args = parse_arguments()
     
     # Set up logging
-    logger = setup_logging(args.verbose)
+    logger = setup_logging(
+        verbose=args.verbose,
+        log_file=args.log_file,
+        log_max_size=args.log_max_size,
+        log_backup_count=args.log_backup_count
+    )
     
     try:
         # Load custom mapping if provided
