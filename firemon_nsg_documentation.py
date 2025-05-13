@@ -54,7 +54,7 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 def parse_arguments():
     """Parse command line arguments or prompt for inputs"""
     parser = argparse.ArgumentParser(description='Map NSG tags to FireMon rule documentation fields')
-    parser.add_argument('--ip', help='FireMon app server IP or FQDN')
+    parser.add_argument('--ip', default='localhost', help='FireMon app server IP or FQDN (default: localhost)')
     parser.add_argument('--domain', type=int, default=1, help='Domain ID (default: 1)')
     parser.add_argument('--device', type=int, help='Device ID')
     parser.add_argument('--username', help='FireMon username')
@@ -77,8 +77,6 @@ def parse_arguments():
     # Check if we're in non-interactive mode and validate required parameters
     if args.non_interactive:
         missing_params = []
-        if not args.ip:
-            missing_params.append('--ip')
         if not args.username:
             missing_params.append('--username')
         if not args.password:
@@ -92,9 +90,6 @@ def parse_arguments():
         return args
 
     # If not in non-interactive mode and args aren't provided, prompt for them
-    if not args.ip:
-        args.ip = input("FireMon app server IP or FQDN (default: localhost): >> ") or "localhost"
-    
     if not args.username:
         args.username = input("Username for FireMon UI account: >> ")
     
